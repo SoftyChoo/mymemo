@@ -70,6 +70,9 @@ class _HomePageState extends State<HomePage> {
                               : CupertinoIcons.pin,
                         ),
                         onPressed: () {
+                          setState(() {
+                            memo.isPinned = !memo.isPinned;
+                          });
                           print('$memo : pin 클릭 됨');
                         },
                       ),
