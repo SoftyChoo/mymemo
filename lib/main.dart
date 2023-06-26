@@ -71,6 +71,14 @@ class _HomePageState extends State<HomePage> {
                         overflow: TextOverflow.ellipsis,
                       ),
                       onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => DetailPage(
+                              index: index,
+                            ),
+                          ),
+                        );
                         // 아이템 클릭시
                       },
                     );
@@ -90,16 +98,18 @@ class _HomePageState extends State<HomePage> {
 
 // 메모 생성 및 수정 페이지
 class DetailPage extends StatelessWidget {
-  DetailPage({super.key, required this.memoList, required this.index});
+  DetailPage({super.key, required this.index});
 
-  final List<String> memoList;
   final int index;
 
   TextEditingController contentController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-    contentController.text = memoList[index]; //초기값 설정
+    MemoService memoService = context.read<MemoService>();
+    Memo memo = memoService.memoList[index];
+
+    contentController.text = memo.content;
 
     return Scaffold(
       appBar: AppBar(
@@ -117,7 +127,7 @@ class DetailPage extends StatelessWidget {
                       // 취소 버튼
                       TextButton(
                         onPressed: () {
-                          memoList.removeAt(index); // index에 해당하는 항목 삭제
+                          // memoList.removeAt(index); // index에 해당하는 항목 삭제
                           Navigator.pop(context); // 팝업 닫기
                           Navigator.pop(context); // HomePage 로 가기
                         },
@@ -157,7 +167,7 @@ class DetailPage extends StatelessWidget {
           onChanged: (value) {
             // 텍스트필드 안의 값이 변할 때 setstate는 같은페이지에서 사용하는것
 
-            memoList[index] = value;
+            // memoList[index] = value;
           },
         ),
       ),

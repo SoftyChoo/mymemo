@@ -17,4 +17,10 @@ class MemoService extends ChangeNotifier {
     Memo(content: '장보기 목록: 사과, 양파'), // 더미(dummy) 데이터
     Memo(content: '새 메모'), // 더미(dummy) 데이터
   ];
+
+//메모값 받아서 새로 생성
+  createMemo({required String content}) {
+    Memo memo = Memo(content: content);
+    memoList.add(memo);
+  }
 }
