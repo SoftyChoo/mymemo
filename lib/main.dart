@@ -105,7 +105,6 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ],
                       ),
-
                       onTap: () {
                         Navigator.push(
                           context,
@@ -199,9 +198,7 @@ class DetailPage extends StatelessWidget {
             // 취소 버튼
             TextButton(
               onPressed: () {
-                // memoList.removeAt(index); // index에 해당하는 항목 삭제
                 Navigator.pop(context); // 팝업 닫기
-                Navigator.pop(context); // HomePage 로 가기
               },
               child: Text("취소"),
             ),
@@ -209,8 +206,8 @@ class DetailPage extends StatelessWidget {
             TextButton(
               onPressed: () {
                 memoService.deleteMemo(index: index);
-                Navigator.pop(context);
-                Navigator.pop(context);
+                Navigator.pop(context); // 팝업 닫기
+                Navigator.pop(context); // HomePage 로 가기
               },
               child: Text(
                 "확인",

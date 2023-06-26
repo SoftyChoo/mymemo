@@ -8,7 +8,7 @@ import 'main.dart';
 class Memo {
   bool isPinned;
   bool isTop;
-  DateTime modifiedTime; // 추가: 수정 시간을 저장할 변수
+  DateTime modifiedTime; //수정 시간을 저장할 변수
 
   Memo({
     required this.content,
@@ -43,7 +43,6 @@ class MemoService extends ChangeNotifier {
   createMemo({required String content}) {
     Memo memo = Memo(content: content);
     memoList.add(memo);
-
     notifyListeners(); // Consumer<MemoService>의 builder 부분을 호출해서 화면 새로고침
     saveMemoList();
   }
@@ -51,6 +50,11 @@ class MemoService extends ChangeNotifier {
   updateMemo({required int index, required String content}) {
     Memo memo = memoList[index];
     memo.content = content;
+    memo.modifiedTime = DateTime.now();
+
+    if (memo.content.isEmpty) {
+      deleteMemo(index: index);
+    }
     notifyListeners();
     saveMemoList();
   }
@@ -64,7 +68,6 @@ class MemoService extends ChangeNotifier {
   saveMemoList() {
     List memoJsonList = memoList.map((memo) => memo.toJson()).toList();
     // [{"content": "1"}, {"content": "2"}]
-
     String jsonString = jsonEncode(memoJsonList);
     // '[{"content": "1"}, {"content": "2"}]'
 
