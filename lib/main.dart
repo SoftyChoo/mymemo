@@ -1,10 +1,15 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'memo_service.dart';
 
-void main() {
+late SharedPreferences prefs;
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  prefs = await SharedPreferences.getInstance();
   runApp(
     MultiProvider(
       providers: [
@@ -59,7 +64,11 @@ class _HomePageState extends State<HomePage> {
                     return ListTile(
                       // 메모 고정 아이콘
                       leading: IconButton(
-                        icon: Icon(CupertinoIcons.pin),
+                        icon: Icon(
+                          memo.isPinned
+                              ? CupertinoIcons.pin_fill
+                              : CupertinoIcons.pin,
+                        ),
                         onPressed: () {
                           print('$memo : pin 클릭 됨');
                         },
@@ -79,7 +88,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                           ),
                         );
-                        // 아이템 클릭시
+                        // 아이템 x클릭시
                       },
                     );
                   },
