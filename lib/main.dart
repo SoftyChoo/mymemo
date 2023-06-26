@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -42,14 +43,24 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<String> memoList = ['장보기 목록: 사과, 양파', '새 메모']; // 전체 메모 목록
-
   @override
   Widget build(BuildContext context) {
     return Consumer<MemoService>(
       builder: (context, memoService, child) {
         // memoService로 부터 memoList 가져오기
         List<Memo> memoList = memoService.memoList;
+
+        List<Memo> pinnedTrue = []; //눌린핀 리스트
+        List<Memo> pinnedFalse = []; //안눌린핀 리스트
+        //메모리스트 전체를 한번
+        for (Memo memo in memoList) {
+          if (memo.isPinned) {
+            pinnedTrue.add(memo); //눌린핀 리스트에 추가
+          } else {
+            pinnedFalse.add(memo); //안눌린핀 메모에 추가
+          }
+        }
+        memoList = [...pinnedTrue, ...pinnedFalse]; //메모리스트를 눌린핀->안눌린핀 순으로 재구성
 
         return Scaffold(
           appBar: AppBar(
@@ -71,17 +82,30 @@ class _HomePageState extends State<HomePage> {
                         ),
                         onPressed: () {
                           setState(() {
-                            memo.isPinned = !memo.isPinned;
+                            memo.isPinned = !memo.isPinned; //메모의 핀 상태를 전환한다.
                           });
                           print('$memo : pin 클릭 됨');
                         },
                       ),
                       // 메모 내용 (최대 3줄까지만 보여주도록)
-                      title: Text(
-                        memo.content, //memo -> memo.content 메모의 내용을 보여줌 [Memo는 스트링 형식이 아니기 때문에 content를 붙여줌]
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
+                      title: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            memo.content, //memo -> memo.content 메모의 내용을 보여줌 [Memo는 스트링 형식이 아니기 때문에 content를 붙여줌]
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            DateFormat('yyyy-MM-dd HH:mm:ss')
+                                .format(memo.modifiedTime),
+                            style: TextStyle(
+                                fontSize: 13,
+                                color: const Color.fromARGB(255, 65, 64, 64)),
+                          ),
+                        ],
                       ),
+
                       onTap: () {
                         Navigator.push(
                           context,
@@ -91,7 +115,6 @@ class _HomePageState extends State<HomePage> {
                             ),
                           ),
                         );
-                        // 아이템 x클릭시
                       },
                     );
                   },
@@ -138,7 +161,6 @@ class DetailPage extends StatelessWidget {
           IconButton(
             onPressed: () {
               // 삭제 버튼 클릭시
-
               showDeleteDialog(context, memoService);
             },
             icon: Icon(Icons.delete),

@@ -7,16 +7,19 @@ import 'main.dart';
 // Memo 데이터의 형식을 정해줍니다. 추후 isPinned, updatedAt 등의 정보도 저장할 수 있습니다.
 class Memo {
   bool isPinned;
+  bool isTop;
+  DateTime modifiedTime; // 추가: 수정 시간을 저장할 변수
 
   Memo({
     required this.content,
     this.isPinned = false,
-  });
+    this.isTop = false,
+  }) : modifiedTime = DateTime.now();
 
   String content;
 
   Map toJson() {
-    return {'content': content};
+    return {'content': content, 'isPinned': isPinned};
   }
 
   factory Memo.fromJson(json) {
