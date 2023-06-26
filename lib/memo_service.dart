@@ -22,5 +22,18 @@ class MemoService extends ChangeNotifier {
   createMemo({required String content}) {
     Memo memo = Memo(content: content);
     memoList.add(memo);
+
+    notifyListeners(); // Consumer<MemoService>의 builder 부분을 호출해서 화면 새로고침
+  }
+
+  updateMemo({required int index, required String content}) {
+    Memo memo = memoList[index];
+    memo.content = content;
+    notifyListeners();
+  }
+
+  deleteMemo({required int index}) {
+    memoList.removeAt(index);
+    notifyListeners();
   }
 }

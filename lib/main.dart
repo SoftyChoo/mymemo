@@ -88,6 +88,15 @@ class _HomePageState extends State<HomePage> {
             child: Icon(Icons.add),
             onPressed: () {
               // + 버튼 클릭시 메모 생성 및 수정 페이지로 이동
+              memoService.createMemo(content: '');
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => DetailPage(
+                    index: memoService.memoList.length - 1,
+                  ),
+                ),
+              );
             },
           ),
         );
@@ -118,35 +127,7 @@ class DetailPage extends StatelessWidget {
             onPressed: () {
               // 삭제 버튼 클릭시
 
-              showDialog(
-                context: context,
-                builder: (context) {
-                  return AlertDialog(
-                    title: Text("정말로 삭제하시겠습니까?"),
-                    actions: [
-                      // 취소 버튼
-                      TextButton(
-                        onPressed: () {
-                          // memoList.removeAt(index); // index에 해당하는 항목 삭제
-                          Navigator.pop(context); // 팝업 닫기
-                          Navigator.pop(context); // HomePage 로 가기
-                        },
-                        child: Text("취소"),
-                      ),
-                      // 확인 버튼
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        child: Text(
-                          "확인",
-                          style: TextStyle(color: Colors.pink),
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              );
+              showDeleteDialog(context, memoService);
             },
             icon: Icon(Icons.delete),
           )
@@ -166,11 +147,45 @@ class DetailPage extends StatelessWidget {
           keyboardType: TextInputType.multiline,
           onChanged: (value) {
             // 텍스트필드 안의 값이 변할 때 setstate는 같은페이지에서 사용하는것
-
-            // memoList[index] = value;
+            memoService.updateMemo(index: index, content: value);
           },
         ),
       ),
+    );
+  }
+
+  Future<dynamic> showDeleteDialog(
+      BuildContext context, MemoService memoService) {
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("정말로 삭제하시겠습니까?"),
+          actions: [
+            // 취소 버튼
+            TextButton(
+              onPressed: () {
+                // memoList.removeAt(index); // index에 해당하는 항목 삭제
+                Navigator.pop(context); // 팝업 닫기
+                Navigator.pop(context); // HomePage 로 가기
+              },
+              child: Text("취소"),
+            ),
+            // 확인 버튼
+            TextButton(
+              onPressed: () {
+                memoService.deleteMemo(index: index);
+                Navigator.pop(context);
+                Navigator.pop(context);
+              },
+              child: Text(
+                "확인",
+                style: TextStyle(color: Colors.pink),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
