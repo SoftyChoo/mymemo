@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -14,7 +13,6 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        //각 위젯들에서 프로바이더를 사용할 수 있게끔 설정
         ChangeNotifierProvider(create: (context) => MemoService()),
       ],
       child: const MyApp(),
@@ -50,18 +48,6 @@ class _HomePageState extends State<HomePage> {
         // memoService로 부터 memoList 가져오기
         List<Memo> memoList = memoService.memoList;
 
-        List<Memo> pinnedTrue = []; //눌린핀 리스트
-        List<Memo> pinnedFalse = []; //안눌린핀 리스트
-        //메모리스트 전체를 한번
-        for (Memo memo in memoList) {
-          if (memo.isPinned) {
-            pinnedTrue.add(memo); //눌린핀 리스트에 추가
-          } else {
-            pinnedFalse.add(memo); //안눌린핀 메모에 추가
-          }
-        }
-        memoList = [...pinnedTrue, ...pinnedFalse]; //메모리스트를 눌린핀->안눌린핀 순으로 재구성
-
         return Scaffold(
           appBar: AppBar(
             title: Text("mymemo"),
@@ -75,38 +61,25 @@ class _HomePageState extends State<HomePage> {
                     return ListTile(
                       // 메모 고정 아이콘
                       leading: IconButton(
-                        icon: Icon(
-                          memo.isPinned
-                              ? CupertinoIcons.pin_fill
-                              : CupertinoIcons.pin,
-                        ),
+                        icon: Icon(memo.isPinned
+                            ? CupertinoIcons.pin_fill
+                            : CupertinoIcons.pin),
                         onPressed: () {
-                          setState(() {
-                            memo.isPinned = !memo.isPinned; //메모의 핀 상태를 전환한다.
-                          });
-                          print('$memo : pin 클릭 됨');
+                          memoService.updatePinMemo(index: index);
                         },
                       ),
                       // 메모 내용 (최대 3줄까지만 보여주도록)
-                      title: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            memo.content, //memo -> memo.content 메모의 내용을 보여줌 [Memo는 스트링 형식이 아니기 때문에 content를 붙여줌]
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          Text(
-                            DateFormat('yyyy-MM-dd HH:mm:ss')
-                                .format(memo.modifiedTime),
-                            style: TextStyle(
-                                fontSize: 13,
-                                color: const Color.fromARGB(255, 65, 64, 64)),
-                          ),
-                        ],
+                      title: Text(
+                        memo.content,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      onTap: () {
-                        Navigator.push(
+                      trailing: Text(memo.updatedAt == null
+                          ? ""
+                          : memo.updatedAt.toString().substring(0, 19)),
+                      onTap: () async {
+                        // 아이템 클릭시
+                        await Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (_) => DetailPage(
@@ -114,16 +87,19 @@ class _HomePageState extends State<HomePage> {
                             ),
                           ),
                         );
+                        if (memo.content.isEmpty) {
+                          memoService.deleteMemo(index: index);
+                        }
                       },
                     );
                   },
                 ),
           floatingActionButton: FloatingActionButton(
             child: Icon(Icons.add),
-            onPressed: () {
+            onPressed: () async {
               // + 버튼 클릭시 메모 생성 및 수정 페이지로 이동
               memoService.createMemo(content: '');
-              Navigator.push(
+              await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (_) => DetailPage(
@@ -131,6 +107,9 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
               );
+              if (memoList[memoService.memoList.length - 1].content.isEmpty) {
+                memoService.deleteMemo(index: memoList.length - 1);
+              }
             },
           ),
         );
@@ -179,7 +158,7 @@ class DetailPage extends StatelessWidget {
           expands: true,
           keyboardType: TextInputType.multiline,
           onChanged: (value) {
-            // 텍스트필드 안의 값이 변할 때 setstate는 같은페이지에서 사용하는것
+            // 텍스트필드 안의 값이 변할 때
             memoService.updateMemo(index: index, content: value);
           },
         ),
@@ -187,9 +166,8 @@ class DetailPage extends StatelessWidget {
     );
   }
 
-  Future<dynamic> showDeleteDialog(
-      BuildContext context, MemoService memoService) {
-    return showDialog(
+  void showDeleteDialog(BuildContext context, MemoService memoService) {
+    showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
@@ -198,7 +176,7 @@ class DetailPage extends StatelessWidget {
             // 취소 버튼
             TextButton(
               onPressed: () {
-                Navigator.pop(context); // 팝업 닫기
+                Navigator.pop(context);
               },
               child: Text("취소"),
             ),

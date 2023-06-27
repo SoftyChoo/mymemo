@@ -6,31 +6,37 @@ import 'main.dart';
 
 // Memo 데이터의 형식을 정해줍니다. 추후 isPinned, updatedAt 등의 정보도 저장할 수 있습니다.
 class Memo {
-  bool isPinned;
-  bool isTop;
-  DateTime modifiedTime; //수정 시간을 저장할 변수
-
   Memo({
     required this.content,
     this.isPinned = false,
-    this.isTop = false,
-  }) : modifiedTime = DateTime.now();
+    this.updatedAt,
+  });
 
   String content;
+  bool isPinned;
+  DateTime? updatedAt;
 
   Map toJson() {
-    return {'content': content, 'isPinned': isPinned};
+    return {
+      'content': content,
+      'isPinned': isPinned,
+      'updatedAt': updatedAt?.toIso8601String(),
+    };
   }
 
   factory Memo.fromJson(json) {
-    return Memo(content: json['content']);
+    return Memo(
+      content: json['content'],
+      isPinned: json['isPinned'] ?? false,
+      updatedAt:
+          json['updatedAt'] == null ? null : DateTime.parse(json['updatedAt']),
+    );
   }
 }
 
 // Memo 데이터는 모두 여기서 관리
 class MemoService extends ChangeNotifier {
   MemoService() {
-    //생성자
     loadMemoList();
   }
 
@@ -39,9 +45,8 @@ class MemoService extends ChangeNotifier {
     Memo(content: '새 메모'), // 더미(dummy) 데이터
   ];
 
-//메모값 받아서 새로 생성
   createMemo({required String content}) {
-    Memo memo = Memo(content: content);
+    Memo memo = Memo(content: content, updatedAt: DateTime.now());
     memoList.add(memo);
     notifyListeners(); // Consumer<MemoService>의 builder 부분을 호출해서 화면 새로고침
     saveMemoList();
@@ -50,11 +55,18 @@ class MemoService extends ChangeNotifier {
   updateMemo({required int index, required String content}) {
     Memo memo = memoList[index];
     memo.content = content;
-    memo.modifiedTime = DateTime.now();
+    memo.updatedAt = DateTime.now();
+    notifyListeners();
+    saveMemoList();
+  }
 
-    if (memo.content.isEmpty) {
-      deleteMemo(index: index);
-    }
+  updatePinMemo({required int index}) {
+    Memo memo = memoList[index];
+    memo.isPinned = !memo.isPinned;
+    memoList = [
+      ...memoList.where((element) => element.isPinned),
+      ...memoList.where((element) => !element.isPinned)
+    ];
     notifyListeners();
     saveMemoList();
   }
@@ -68,6 +80,7 @@ class MemoService extends ChangeNotifier {
   saveMemoList() {
     List memoJsonList = memoList.map((memo) => memo.toJson()).toList();
     // [{"content": "1"}, {"content": "2"}]
+
     String jsonString = jsonEncode(memoJsonList);
     // '[{"content": "1"}, {"content": "2"}]'
 
